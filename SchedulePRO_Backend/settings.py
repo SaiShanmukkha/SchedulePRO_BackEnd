@@ -40,7 +40,8 @@ INSTALLED_APPS = [
 
 EXTERNAL_APPS = [
     'rest_framework',
-    'main'
+    'main',
+    'schedulebuilder'
 ]
 
 INSTALLED_APPS += EXTERNAL_APPS
