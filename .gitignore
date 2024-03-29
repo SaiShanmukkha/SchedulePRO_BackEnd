@@ -1,4 +1,4 @@
-./djano_env/*
+djano_env/
 __pycache__/
 .env
 .env.*
