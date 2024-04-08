@@ -20,6 +20,7 @@ class Room(models.Model):
 class GradeMode(models.Model):
     name = models.CharField(max_length=255, unique=True)
     isCreditCounted = models.BooleanField()
+    
     def __str__(self) -> str:
         return self.name
 
@@ -67,13 +68,17 @@ class Course(models.Model):
     courseAttributes = models.TextField(blank=True, null=True)
 
     def __str__(self) -> str:
-        return self.name
+        return self.code + " " + self.name
 
 class CoursePrerequisite(models.Model):
+    TYPE_CHOICES = [
+        ("Mandetory", "Mandetory"),
+        ("Choice", "Choice")
+    ]
     course = models.ForeignKey(Course, on_delete=models.PROTECT, related_name='course_prerequisites')
     prerequisite = models.ForeignKey(Course, on_delete=models.PROTECT, related_name='is_prerequisite_for')
-    Type = models.CharField(max_length=255, default="Mandetory")
-    Condition = models.CharField(max_length=255)
+    Type = models.CharField(max_length=255, default="Mandetory", choices=TYPE_CHOICES)
+    Condition = models.CharField(max_length=255, default="grade of 'C' or better")
 
     class Meta:
         unique_together = (('course', 'prerequisite'),)
@@ -91,9 +96,13 @@ class CoursePrerequisite(models.Model):
         super().save(*args, **kwargs)
 
 class CourseCorequisite(models.Model):
+    TYPE_CHOICES = [
+        ("Mandetory", "Mandetory"),
+        ("Choice", "Choice")
+    ]
     course = models.ForeignKey(Course, on_delete=models.PROTECT, related_name='course_corequisites')
     corequisite = models.ForeignKey(Course, on_delete=models.PROTECT, related_name='is_corequisite_for')
-    Type = models.CharField(max_length=255, default="Mandetory")
+    Type = models.CharField(max_length=255, default="Mandetory", choices=TYPE_CHOICES)
     Condition = models.CharField(max_length=255, default="grade of 'C' or better")
 
     class Meta:
@@ -103,7 +112,7 @@ class CourseCorequisite(models.Model):
         return self.course.name
 
     def clean(self):
-        if self.course_id == self.prerequisite_id:
+        if self.course_id == self.corequisite_id:
             raise ValidationError("A course cannot be a corequisite of itself.")
         super().clean()
 
