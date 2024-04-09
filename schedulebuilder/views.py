@@ -3,6 +3,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from .serializers import ScheduleSerializer, ScheduleSectionSerializer, ScheduleCourseSerializer, ScheduleFacultySerializer
 from .models import Schedule, ScheduleFaculty, ScheduleCourse, ScheduleSection
+from django.db import transaction
 
 # Create your views here.
 @api_view(['GET', 'POST'])
@@ -142,27 +143,71 @@ def schedule_section_view(request, schedule_pk, schedule_course_pk, pk=None):
             return Response(serializer.data)
 
     elif request.method == 'POST':
-        serializer = ScheduleSectionSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save(schedule_course_id=schedule_course_pk)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        # Check if the request data is a list (for multiple sections)
+        if isinstance(request.data, list):
+            serializer = ScheduleSectionSerializer(data=request.data, many=True)
+            if serializer.is_valid():
+                serializer.save(schedule_course_id=schedule_course_pk)
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            # Single section handling
+            serializer = ScheduleSectionSerializer(data=request.data)
+            if serializer.is_valid():
+                serializer.save(schedule_course_id=schedule_course_pk)
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     elif request.method == 'PUT':
-        try:
-            section = ScheduleSection.objects.get(pk=pk, schedule_course__schedule=schedule_pk, schedule_course=schedule_course_pk)
-        except ScheduleSection.DoesNotExist:
-            return Response({'error': 'Schedule Section not found'}, status=status.HTTP_404_NOT_FOUND)
-        serializer = ScheduleSectionSerializer(section, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        if isinstance(request.data, list):
+            updated_sections = []
+            for section_data in request.data:
+                try:
+                    section_id = section_data.get('id')
+                    if section_id is None:
+                        return Response({'error': 'Missing id for section'}, status=status.HTTP_400_BAD_REQUEST)
+
+                    section = ScheduleSection.objects.get(pk=section_id, schedule_course__schedule=schedule_pk, schedule_course=schedule_course_pk)
+                    serializer = ScheduleSectionSerializer(section, data=section_data)
+                    if serializer.is_valid():
+                        serializer.save()
+                        updated_sections.append(serializer.data)
+                    else:
+                        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                except ScheduleSection.DoesNotExist:
+                    return Response({'error': f'Schedule Section with id {section_id} not found'}, status=status.HTTP_404_NOT_FOUND)
+
+            return Response(updated_sections, status=status.HTTP_200_OK)
+        else:
+            try:
+                section = ScheduleSection.objects.get(pk=pk, schedule_course__schedule=schedule_pk, schedule_course=schedule_course_pk)
+            except ScheduleSection.DoesNotExist:
+                return Response({'error': 'Schedule Section not found'}, status=status.HTTP_404_NOT_FOUND)
+            serializer = ScheduleSectionSerializer(section, data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     elif request.method == 'DELETE':
-        try:
-            section = ScheduleSection.objects.get(pk=pk, schedule_course__schedule=schedule_pk, schedule_course=schedule_course_pk)
-            section.delete()
+        if isinstance(request.data, list):
+            section_ids = request.data
+            # Using transaction.atomic to ensure all deletions are treated as a single atomic operation
+            with transaction.atomic():
+                for section_id in section_ids:
+                    try:
+                        section = ScheduleSection.objects.get(pk=section_id, schedule_course__schedule=schedule_pk, schedule_course=schedule_course_pk)
+                        section.delete()
+                    except ScheduleSection.DoesNotExist:
+                        transaction.set_rollback(True)
+                        return Response({'error': f'Schedule Section with id {section_id} not found'}, status=status.HTTP_404_NOT_FOUND)
+
             return Response(status=status.HTTP_204_NO_CONTENT)
-        except ScheduleSection.DoesNotExist:
-            return Response({'error': 'Schedule Section not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        else:
+            try:
+                section = ScheduleSection.objects.get(pk=pk, schedule_course__schedule=schedule_pk, schedule_course=schedule_course_pk)
+                section.delete()
+                return Response(status=status.HTTP_204_NO_CONTENT)
+            except ScheduleSection.DoesNotExist:
+                return Response({'error': 'Schedule Section not found'}, status=status.HTTP_404_NOT_FOUND)
