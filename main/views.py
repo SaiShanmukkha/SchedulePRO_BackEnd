@@ -3,10 +3,6 @@ from rest_framework.response import Response
 from .models import Course, Faculty
 from .serializers import CourseSerealizer, FacultySerealizer
 
-@api_view(['GET'])
-def IndexView(request):
-    return Response("Index")
-
 
 @api_view(['GET'])
 def CoursesView(request):
