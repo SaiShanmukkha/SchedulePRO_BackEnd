@@ -81,7 +81,7 @@ class ScheduleSection(models.Model):
     createdAt = models.DateTimeField(auto_now_add=True)
 
     def __str__(self) -> str:
-        return self.schedule.name + "<->" + self.section_name
+        return self.schedule_course.schedule.name + "<->" + self.section_name
 
     class Meta:
         unique_together = ['schedule_course', 'section_name', 'sectionType', 'room', 'start_time', 'end_time']
