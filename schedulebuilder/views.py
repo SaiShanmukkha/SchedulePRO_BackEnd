@@ -38,30 +38,77 @@ def schedule_detail_view(request, pk):
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
 @api_view(['GET', 'POST', 'PUT', 'DELETE'])
-def schedule_course_view(request, pk=None):
+def schedule_faculty_view(request, schedule_pk, pk=None):
     if request.method == 'GET':
         if pk:
             try:
-                schedule_course = ScheduleCourse.objects.get(pk=pk)
-                serializer = ScheduleCourseSerializer(schedule_course)
-            except ScheduleCourse.DoesNotExist:
-                return Response({'error': 'Schedule Course not found'}, status=status.HTTP_404_NOT_FOUND)
+                schedule_faculty = ScheduleFaculty.objects.get(pk=pk, schedule_id=schedule_pk)
+                serializer = ScheduleFacultySerializer(schedule_faculty)
+            except ScheduleFaculty.DoesNotExist:
+                return Response({'error': 'Schedule Faculty not found'}, status=status.HTTP_404_NOT_FOUND)
         else:
-            schedule_courses = ScheduleCourse.objects.all()
-            serializer = ScheduleCourseSerializer(schedule_courses, many=True)
+            schedule_faculties = ScheduleFaculty.objects.filter(schedule_id=schedule_pk)
+            serializer = ScheduleFacultySerializer(schedule_faculties, many=True)
         return Response(serializer.data)
 
-    if request.method == 'POST':
-        serializer = ScheduleCourseSerializer(data=request.data)
+    elif request.method == 'POST':
+        data = request.data
+        data['schedule'] = schedule_pk  
+        serializer = ScheduleFacultySerializer(data=data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
 
-    if request.method == 'PUT':
+    elif request.method == 'PUT':
         try:
-            schedule_course = ScheduleCourse.objects.get(pk=pk)
+            schedule_faculty = ScheduleFaculty.objects.get(pk=pk, schedule_id=schedule_pk)
+            serializer = ScheduleFacultySerializer(schedule_faculty, data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except ScheduleFaculty.DoesNotExist:
+            return Response({'error': 'Schedule Faculty not found'}, status=status.HTTP_404_NOT_FOUND)
+    
+    elif request.method == 'DELETE':
+        try:
+            schedule_faculty = ScheduleFaculty.objects.get(pk=pk, schedule_id=schedule_pk)
+            schedule_faculty.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except ScheduleFaculty.DoesNotExist:
+            return Response({'error': 'Schedule Faculty not found'}, status=status.HTTP_404_NOT_FOUND)
+
+
+
+@api_view(['GET', 'POST', 'PUT', 'DELETE'])
+def schedule_course_view(request, schedule_pk, pk=None):
+    if request.method == 'GET':
+        if pk:
+            try:
+                schedule_course = ScheduleCourse.objects.get(pk=pk, schedule=schedule_pk)
+                serializer = ScheduleCourseSerializer(schedule_course)
+                return Response(serializer.data)
+            except ScheduleCourse.DoesNotExist:
+                return Response({'error': 'Schedule Course not found'}, status=status.HTTP_404_NOT_FOUND)
+        else:
+            schedule_courses = ScheduleCourse.objects.filter(schedule=schedule_pk)
+            serializer = ScheduleCourseSerializer(schedule_courses, many=True)
+            return Response(serializer.data)
+
+    elif request.method == 'POST':
+        serializer = ScheduleCourseSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(schedule_id=schedule_pk)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    elif request.method == 'PUT':
+        try:
+            schedule_course = ScheduleCourse.objects.get(pk=pk, schedule=schedule_pk)
         except ScheduleCourse.DoesNotExist:
             return Response({'error': 'Schedule Course not found'}, status=status.HTTP_404_NOT_FOUND)
         serializer = ScheduleCourseSerializer(schedule_course, data=request.data)
@@ -70,9 +117,9 @@ def schedule_course_view(request, pk=None):
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    if request.method == 'DELETE':
+    elif request.method == 'DELETE':
         try:
-            schedule_course = ScheduleCourse.objects.get(pk=pk)
+            schedule_course = ScheduleCourse.objects.get(pk=pk, schedule=schedule_pk)
             schedule_course.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
         except ScheduleCourse.DoesNotExist:
@@ -80,32 +127,33 @@ def schedule_course_view(request, pk=None):
 
 
 @api_view(['GET', 'POST', 'PUT', 'DELETE'])
-def schedule_faculty_view(request, pk=None):
+def schedule_section_view(request, schedule_pk, schedule_course_pk, pk=None):
     if request.method == 'GET':
         if pk:
             try:
-                schedule_faculty = ScheduleFaculty.objects.get(pk=pk)
-                serializer = ScheduleFacultySerializer(schedule_faculty)
-            except ScheduleFaculty.DoesNotExist:
-                return Response({'error': 'Schedule Faculty not found'}, status=status.HTTP_404_NOT_FOUND)
+                section = ScheduleSection.objects.get(pk=pk, schedule_course__schedule=schedule_pk, schedule_course=schedule_course_pk)
+                serializer = ScheduleSectionSerializer(section)
+                return Response(serializer.data)
+            except ScheduleSection.DoesNotExist:
+                return Response({'error': 'Schedule Section not found'}, status=status.HTTP_404_NOT_FOUND)
         else:
-            schedule_faculties = ScheduleFaculty.objects.all()
-            serializer = ScheduleFacultySerializer(schedule_faculties, many=True)
-        return Response(serializer.data)
+            sections = ScheduleSection.objects.filter(schedule_course__schedule=schedule_pk, schedule_course=schedule_course_pk)
+            serializer = ScheduleSectionSerializer(sections, many=True)
+            return Response(serializer.data)
 
     elif request.method == 'POST':
-        serializer = ScheduleFacultySerializer(data=request.data)
+        serializer = ScheduleSectionSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()
+            serializer.save(schedule_course_id=schedule_course_pk)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     elif request.method == 'PUT':
         try:
-            schedule_faculty = ScheduleFaculty.objects.get(pk=pk)
-        except ScheduleFaculty.DoesNotExist:
-            return Response({'error': 'Schedule Faculty not found'}, status=status.HTTP_404_NOT_FOUND)
-        serializer = ScheduleFacultySerializer(schedule_faculty, data=request.data)
+            section = ScheduleSection.objects.get(pk=pk, schedule_course__schedule=schedule_pk, schedule_course=schedule_course_pk)
+        except ScheduleSection.DoesNotExist:
+            return Response({'error': 'Schedule Section not found'}, status=status.HTTP_404_NOT_FOUND)
+        serializer = ScheduleSectionSerializer(section, data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
@@ -113,46 +161,8 @@ def schedule_faculty_view(request, pk=None):
 
     elif request.method == 'DELETE':
         try:
-            schedule_faculty = ScheduleFaculty.objects.get(pk=pk)
-            schedule_faculty.delete()
+            section = ScheduleSection.objects.get(pk=pk, schedule_course__schedule=schedule_pk, schedule_course=schedule_course_pk)
+            section.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
-        except ScheduleFaculty.DoesNotExist:
-            return Response({'error': 'Schedule Faculty not found'}, status=status.HTTP_404_NOT_FOUND)
-
-
-@api_view(['GET', 'POST', 'PUT'])
-def schedule_section_view(request, pk=None):
-    if request.method == 'GET':
-        if pk:
-            # Get a single schedule section
-            try:
-                schedule_section = ScheduleSection.objects.get(pk=pk)
-                serializer = ScheduleSectionSerializer(schedule_section)
-            except ScheduleSection.DoesNotExist:
-                return Response({'error': 'Schedule Section not found'}, status=status.HTTP_404_NOT_FOUND)
-        else:
-            # Get all schedule sections
-            schedule_sections = ScheduleSection.objects.all()
-            serializer = ScheduleSectionSerializer(schedule_sections, many=True)
-
-        return Response(serializer.data)
-
-    elif request.method == 'POST':
-        serializer = ScheduleSectionSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    elif request.method == 'PUT':
-        try:
-            schedule_section = ScheduleSection.objects.get(pk=pk)
         except ScheduleSection.DoesNotExist:
             return Response({'error': 'Schedule Section not found'}, status=status.HTTP_404_NOT_FOUND)
-
-        serializer = ScheduleSectionSerializer(schedule_section, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-

@@ -70,6 +70,7 @@ class ScheduleSection(models.Model):
         ('Class', 'Class'),
         ('Lab', 'Lab'),
     ]
+    schedule = models.ForeignKey(Schedule, on_delete=models.CASCADE)
     schedule_course = models.ForeignKey(ScheduleCourse, on_delete=models.CASCADE, related_name='sections')
     faculty = models.ForeignKey(ScheduleFaculty, on_delete=models.CASCADE, null=True, blank=True)
     room = models.ForeignKey(ScheduleRoom, on_delete=models.CASCADE, null=True, blank=True)
