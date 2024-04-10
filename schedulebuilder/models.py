@@ -1,7 +1,7 @@
 from django.db import models
 from django.utils.text import slugify
 from django.db.models.signals import pre_save
-from main.models import Course, Faculty, Room
+from main.models import Course, Faculty, Room, Department
 from datetime import datetime
 
 class Schedule(models.Model):
@@ -14,6 +14,7 @@ class Schedule(models.Model):
     semester = models.CharField(max_length=255, null=True, blank=True)
     status = models.CharField(max_length=255, default='Draft', choices=STATUS_CHOICES)
     lastUpdated = models.DateTimeField(auto_now=True)
+    department = models.ForeignKey(Department, on_delete=models.SET_NULL, null=True, blank=True)
     createdAt = models.DateTimeField(auto_now_add=True)
     slug = models.SlugField(unique=True, blank=True)
     def __str__(self) -> str:
