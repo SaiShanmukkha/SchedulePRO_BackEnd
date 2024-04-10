@@ -126,6 +126,14 @@ def schedule_course_view(request, schedule_pk, pk=None):
         except ScheduleCourse.DoesNotExist:
             return Response({'error': 'Schedule Course not found'}, status=status.HTTP_404_NOT_FOUND)
 
+@api_view(['GET'])
+def schedule_section_list(request, schedule_pk):
+    if request.method == 'GET':
+        sections = ScheduleSection.objects.filter(schedule_course__schedule=schedule_pk)
+        serializer = ScheduleSectionSerializer(sections, many=True)
+        return Response(serializer.data)
+
+
 
 @api_view(['GET', 'POST', 'PUT', 'DELETE'])
 def schedule_section_view(request, schedule_pk, schedule_course_pk, pk=None):

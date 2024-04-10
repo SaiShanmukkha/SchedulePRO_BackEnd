@@ -1,6 +1,6 @@
 from main.views import CoursesView, FacultyView, SemesterView, course_corequisites_view, DepartmentsView
 from django.urls import path
-from schedulebuilder.views import SchedulesView, schedule_detail_view, schedule_faculty_view, schedule_course_view, schedule_section_view
+from schedulebuilder.views import SchedulesView, schedule_detail_view, schedule_faculty_view, schedule_course_view, schedule_section_view, schedule_section_list
 
 urlpatterns = [
     path(route="courses/", view=CoursesView, name="Courses"),
@@ -14,7 +14,8 @@ urlpatterns = [
     path(route='schedules/<int:schedule_pk>/faculties/<int:pk>/', view=schedule_faculty_view, name='schedule-faculty-detail'),
     path(route='schedules/<int:schedule_pk>/courses/', view=schedule_course_view, name='schedule_course_list'),
     path(route='schedules/<int:schedule_pk>/courses/<int:pk>/', view=schedule_course_view, name='schedule_course_detail'),
-    path(route='schedules/<int:schedule_pk>/courses/<int:schedule_course_pk>/sections/', view=schedule_section_view, name='schedule_section_list'),
+    path(route='schedules/<int:schedule_pk>/sections/', view=schedule_section_list, name='schedule_section_list'),
+    path(route='schedules/<int:schedule_pk>/courses/<int:schedule_course_pk>/sections/', view=schedule_section_view, name='schedule_sections'),
     path(route='schedules/<int:schedule_pk>/courses/<int:schedule_course_pk>/sections/<int:pk>/', view=schedule_section_view, name='schedule_section_detail'),
 ]
 
