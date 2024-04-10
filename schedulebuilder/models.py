@@ -41,7 +41,7 @@ class ScheduleCourse(models.Model):
     createdAt = models.DateTimeField(auto_now_add=True)
 
     def __str__(self) -> str:
-        return self.name + "<->" + self.course.name
+        return self.code + " " + self.course.name
 
     
 class ScheduleFaculty(models.Model):
@@ -52,7 +52,7 @@ class ScheduleFaculty(models.Model):
     createdAt = models.DateTimeField(auto_now_add=True)
 
     def __str__(self) -> str:
-        return self.schedule.name + "<->" + self.name
+        return self.schedule.name + " " + self.name
 
 class ScheduleRoom(models.Model):
     schedule = models.ForeignKey(Schedule, on_delete=models.CASCADE)
@@ -63,7 +63,7 @@ class ScheduleRoom(models.Model):
     createdAt = models.DateTimeField(auto_now_add=True)
 
     def __str__(self) -> str:
-        return self.schedule.name + "<->" + self.room.code
+        return self.schedule.name + " " + self.room.code
     
 
 class ScheduleSection(models.Model):
@@ -83,7 +83,7 @@ class ScheduleSection(models.Model):
     createdAt = models.DateTimeField(auto_now_add=True)
 
     def __str__(self) -> str:
-        return self.schedule_course.schedule.name + "<->" + self.section_name
+        return self.schedule_course.code + " " + self.section_name
 
     class Meta:
         unique_together = ['schedule_course', 'section_name', 'sectionType', 'room', 'start_time', 'end_time']
