@@ -1,7 +1,7 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from .models import Course, CourseCorequisite, Faculty
-from .serializers import CourseCorequisiteSerializer, CourseSerializer, FacultySerializer
+from .models import Course, CourseCorequisite, Department, Faculty, Semester
+from .serializers import CourseCorequisiteSerializer, CourseSerializer, DepartmentSerializer, FacultySerializer, SemesterSerializer
 
 
 @api_view(['GET'])
@@ -10,12 +10,23 @@ def CoursesView(request):
     serealized_courses = CourseSerializer(coursesObjs, many=True)
     return Response(serealized_courses.data)
 
+@api_view(['GET'])
+def SemesterView(request):
+    semesters = Semester.objects.all()
+    serializer = SemesterSerializer(semesters, many=True)
+    return Response(serializer.data)
 
 @api_view(['GET'])
 def FacultyView(request):
     facultyObjs = Faculty.objects.all()
     serealized_faculty = FacultySerializer(facultyObjs, many=True)
     return Response(serealized_faculty.data)
+
+@api_view(['GET'])
+def DepartmentsView(request):
+    departments = Department.objects.all()
+    serializer = DepartmentSerializer(departments, many=True)
+    return Response(serializer.data)
 
 @api_view(['GET'])
 def course_corequisites_view(request, course_id):

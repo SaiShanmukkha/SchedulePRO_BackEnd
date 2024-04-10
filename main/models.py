@@ -7,6 +7,13 @@ class RoomType(models.Model):
     def __str__(self) -> str:
         return self.name
 
+class Semester(models.Model):
+    name = models.CharField(max_length=255, unique=True)
+
+    def __str__(self) -> str:
+        return self.name
+
+
 class Room(models.Model):
     code = models.CharField(max_length=255, unique=True)
     building = models.CharField(max_length=255)

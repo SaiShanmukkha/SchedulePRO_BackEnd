@@ -6,7 +6,6 @@ class ScheduleSerializer(serializers.ModelSerializer):
         model = Schedule
         fields = "__all__"
 
-
 class ScheduleCourseSerializer(serializers.ModelSerializer):
     class Meta:
         model = ScheduleCourse
@@ -22,10 +21,10 @@ class ScheduleSectionSerializer(serializers.ModelSerializer):
         model = ScheduleSection
         fields = '__all__'
 
-class ScheduleSerializer(serializers.ModelSerializer):
-    courses = ScheduleCourseSerializer(many=True, read_only=True, source='schedulecourse_set')
-    faculties = ScheduleFacultySerializer(many=True, read_only=True, source='schedulefaculty_set')
+# class ScheduleSerializer(serializers.ModelSerializer):
+#     courses = ScheduleCourseSerializer(many=True, read_only=True, source='schedulecourse_set')
+#     faculties = ScheduleFacultySerializer(many=True, read_only=True, source='schedulefaculty_set')
 
-    class Meta:
-        model = Schedule
-        fields = ['id', 'name', 'courses', 'faculties', 'semester', 'status', 'lastUpdated', 'createdAt', 'slug']
+#     class Meta:
+#         model = Schedule
+#         fields = ['id', 'name', 'courses', 'faculties', 'semester', 'status', 'lastUpdated', 'createdAt', 'slug']

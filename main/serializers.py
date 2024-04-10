@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Faculty, Course, CourseCorequisite
+from .models import Department, Faculty, Course, CourseCorequisite, Semester
 
 
 class FacultySerializer(serializers.ModelSerializer):
@@ -18,6 +18,10 @@ class CourseSerializer(serializers.ModelSerializer):
         # fields = "__all__"
         exclude = ["description", "courseAttributes", "gradeMode"]
 
+class SemesterSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Semester
+        fields = ['id', 'name']
 
 class CourseCorequisiteSerializer(serializers.ModelSerializer):
     corequisite = CourseSerializer(read_only=True)
@@ -25,3 +29,8 @@ class CourseCorequisiteSerializer(serializers.ModelSerializer):
     class Meta:
         model = CourseCorequisite
         exclude = ["Condition"]
+
+class DepartmentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Department
+        fields = ['id', 'name', 'code']
