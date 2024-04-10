@@ -72,13 +72,13 @@ class ScheduleSection(models.Model):
         ('Lab', 'Lab'),
     ]
     schedule = models.ForeignKey(Schedule, on_delete=models.CASCADE)
-    schedule_course = models.ForeignKey(ScheduleCourse, on_delete=models.CASCADE, related_name='sections')
+    schedule_course = models.ForeignKey(ScheduleCourse, on_delete=models.CASCADE)
     faculty = models.ForeignKey(ScheduleFaculty, on_delete=models.CASCADE, null=True, blank=True)
     room = models.ForeignKey(ScheduleRoom, on_delete=models.CASCADE, null=True, blank=True)
     sectionType = models.CharField(max_length=255, default='Class', choices=TYPE_CHOICES)
     section_name = models.CharField(max_length=255)
-    start_time = models.TimeField()
-    end_time = models.TimeField()
+    start_time = models.TimeField(null=True, blank=True)
+    end_time = models.TimeField(null=True, blank=True)
     lastUpdated = models.DateTimeField(auto_now=True)
     createdAt = models.DateTimeField(auto_now_add=True)
 
