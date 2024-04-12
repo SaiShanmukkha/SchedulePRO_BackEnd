@@ -1,4 +1,6 @@
 from rest_framework import serializers
+
+from main.serializers import CustomFacultySerializer
 from .models import Schedule, ScheduleCourse, ScheduleFaculty, ScheduleSection, ScheduleSectionTime
 
 class ScheduleSerializer(serializers.ModelSerializer):
@@ -20,9 +22,12 @@ class ScheduleFacultySerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class ScheduleSectionSerializer(serializers.ModelSerializer):
+    faculty = CustomFacultySerializer(read_only=True)
+
     class Meta:
         model = ScheduleSection
-        fields = '__all__'
+        fields = '__all__' 
+
 
 
 class ScheduleSectionTimeSerializer(serializers.ModelSerializer):
