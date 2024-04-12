@@ -5,6 +5,22 @@ from .serializers import CourseCorequisiteSerializer, CourseSerializer, Departme
 
 
 @api_view(['GET'])
+def CourseCorequisitesListView(request):
+    course_ids = request.query_params.get('course_ids')
+    if course_ids:
+        course_ids = [int(id) for id in course_ids.split(',')]
+        corequisites = CourseCorequisite.objects.filter(course_id__in=course_ids)
+    
+    serializer = CourseCorequisiteSerializer(corequisites, many=True)
+    return Response(serializer.data)
+
+@api_view(['GET'])
+def CourseCorequisitesView(request, course_id):
+    corequisites = CourseCorequisite.objects.filter(course_id=course_id)
+    serializer = CourseCorequisiteSerializer(corequisites, many=True)
+    return Response(serializer.data)
+
+@api_view(['GET'])
 def CoursesView(request):
     coursesObjs = Course.objects.all()
     serealized_courses = CourseSerializer(coursesObjs, many=True)

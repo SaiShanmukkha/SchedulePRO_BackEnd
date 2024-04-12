@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Schedule, ScheduleFaculty, ScheduleRoom, ScheduleCourse, ScheduleSection
+from .models import Schedule, ScheduleFaculty, ScheduleRoom, ScheduleCourse, ScheduleSection, ScheduleSectionTime
 # Register your models here.
 
 
@@ -12,13 +12,18 @@ class ScheduleCourseAdmin(admin.ModelAdmin):
 
 
 class ScheduleSectionAdmin(admin.ModelAdmin):
-    list_display = ["id", "schedule", "schedule_course", "section_name", "sectionType", "faculty", "start_time", "end_time"]
+    list_display = ["id", "schedule", "schedule_course", "section_name", "sectionType", "faculty"]
 
 class ScheduleFacultyAdmin(admin.ModelAdmin):
     list_display = ["id", "schedule", "name", "faculty"]
+
+class ScheduleSectionTimeAdmin(admin.ModelAdmin):
+    list_display = ["id", "schedule", "schedule_course", "schedule_section", "day", "start_time", "end_time"]
+
 
 admin.site.register(Schedule, ScheduleAdmin)
 admin.site.register(ScheduleFaculty, ScheduleFacultyAdmin)
 admin.site.register(ScheduleRoom)
 admin.site.register(ScheduleCourse, ScheduleCourseAdmin)
 admin.site.register(ScheduleSection, ScheduleSectionAdmin)
+admin.site.register(ScheduleSectionTime, ScheduleSectionTimeAdmin)

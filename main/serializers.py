@@ -9,6 +9,14 @@ class FacultySerializer(serializers.ModelSerializer):
         model = Faculty
         fields = "__all__"
 
+class CourseCorequisiteSerializer(serializers.ModelSerializer):
+    corequisite_name = serializers.CharField(source='corequisite.name', read_only=True)
+    corequisite_code = serializers.CharField(source='corequisite.code', read_only=True)
+
+    class Meta:
+        model = CourseCorequisite
+        fields = ['id', 'corequisite_name', 'corequisite_code', 'Type']
+
 
 class CourseSerializer(serializers.ModelSerializer):
     department = serializers.CharField(source="department.name")

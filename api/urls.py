@@ -1,13 +1,14 @@
-from main.views import CoursesView, FacultyView, SemesterView, course_corequisites_view, DepartmentsView
+from main.views import CoursesView, FacultyView, SemesterView, CourseCorequisitesListView, CourseCorequisitesView, DepartmentsView
 from django.urls import path
-from schedulebuilder.views import SchedulesView, schedule_detail_view, schedule_faculty_view, schedule_course_view, schedule_section_view, schedule_section_list
+from schedulebuilder.views import SchedulesView, schedule_detail_view, schedule_faculty_view, schedule_course_view, schedule_section_time_list, schedule_section_time_view, schedule_section_view, schedule_section_list
 
 urlpatterns = [
     path(route="courses/", view=CoursesView, name="Courses"),
     path(route="faculty/", view=FacultyView, name="Faculty"),
     path(route='departments/', view=DepartmentsView, name='departments'),
     path(route='semesters/', view=SemesterView, name='semesters'),
-    path(route='courses/<int:course_id>/corequisites/', view=course_corequisites_view, name='course-corequisites'),
+    path(route='courses/<int:course_id>/corequisites/', view=CourseCorequisitesView, name='course-corequisites'),
+    path(route='course-corequisites/', view=CourseCorequisitesListView, name='course-corequisites'),
     path(route="schedules/", view=SchedulesView, name="Schedules"),
     path(route='schedules/<int:pk>/', view=schedule_detail_view, name='schedule-details'),
     path(route='schedules/<int:schedule_pk>/faculties/', view=schedule_faculty_view, name='schedule-faculty-list'),
@@ -17,6 +18,8 @@ urlpatterns = [
     path(route='schedules/<int:schedule_pk>/sections/', view=schedule_section_list, name='schedule_section_list'),
     path(route='schedules/<int:schedule_pk>/courses/<int:schedule_course_pk>/sections/', view=schedule_section_view, name='schedule_sections'),
     path(route='schedules/<int:schedule_pk>/courses/<int:schedule_course_pk>/sections/<int:pk>/', view=schedule_section_view, name='schedule_section_detail'),
+    path(route='schedules/<int:schedule_pk>/section-times/', view=schedule_section_time_list, name='schedule_section_time_list'),
+    path(route='schedules/<int:schedule_pk>/courses/<int:schedule_course_pk>/sections/<int:schedule_section_pk>/times/', view=schedule_section_time_view, name='schedule_section_detail'),
 ]
 
 

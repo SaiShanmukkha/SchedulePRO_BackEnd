@@ -1,8 +1,8 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
-from .serializers import ScheduleSerializer, ScheduleSectionSerializer, ScheduleCourseSerializer, ScheduleFacultySerializer
-from .models import Schedule, ScheduleFaculty, ScheduleCourse, ScheduleSection
+from .serializers import ScheduleSectionTimeSerializer, ScheduleSerializer, ScheduleSectionSerializer, ScheduleCourseSerializer, ScheduleFacultySerializer
+from .models import Schedule, ScheduleFaculty, ScheduleCourse, ScheduleSection, ScheduleSectionTime
 from django.db import transaction
 
 # Create your views here.
@@ -219,3 +219,63 @@ def schedule_section_view(request, schedule_pk, schedule_course_pk, pk=None):
                 return Response(status=status.HTTP_204_NO_CONTENT)
             except ScheduleSection.DoesNotExist:
                 return Response({'error': 'Schedule Section not found'}, status=status.HTTP_404_NOT_FOUND)
+            
+
+@api_view(['GET', 'POST', 'PUT', 'DELETE'])
+def schedule_section_time_view(request, schedule_pk, schedule_course_pk, schedule_section_pk):
+    # Handle GET requests for all times or a specific time detail
+    if request.method == 'GET':
+        times = ScheduleSectionTime.objects.filter(
+            schedule_id=schedule_pk,
+            schedule_course_id=schedule_course_pk,
+            schedule_section_id=schedule_section_pk
+        )
+        serializer = ScheduleSectionTimeSerializer(times, many=True)
+        return Response(serializer.data)
+
+    # Handle POST to create new time entries
+    elif request.method == 'POST':
+        serializer = ScheduleSectionTimeSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(schedule_id=schedule_pk, schedule_course_id=schedule_course_pk, schedule_section_id=schedule_section_pk)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    # Handle PUT to update existing time entries
+    elif request.method == 'PUT':
+        try:
+            time_entry = ScheduleSectionTime.objects.get(
+                pk=request.data['id'],
+                schedule_id=schedule_pk,
+                schedule_course_id=schedule_course_pk,
+                schedule_section_id=schedule_section_pk
+            )
+            serializer = ScheduleSectionTimeSerializer(time_entry, data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except ScheduleSectionTime.DoesNotExist:
+            return Response({'error': 'Time entry not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    # Handle DELETE to remove existing time entries
+    elif request.method == 'DELETE':
+        try:
+            time_entry = ScheduleSectionTime.objects.get(
+                pk=request.data['id'],
+                schedule_id=schedule_pk,
+                schedule_course_id=schedule_course_pk,
+                schedule_section_id=schedule_section_pk
+            )
+            time_entry.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except ScheduleSectionTime.DoesNotExist:
+            return Response({'error': 'Time entry not found'}, status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(['GET'])
+def schedule_section_time_list(request, schedule_pk):
+    if request.method == 'GET':
+        sections_time = ScheduleSectionTime.objects.filter(schedule_course__schedule=schedule_pk)
+        serializer = ScheduleSectionTimeSerializer(sections_time, many=True)
+        return Response(serializer.data)

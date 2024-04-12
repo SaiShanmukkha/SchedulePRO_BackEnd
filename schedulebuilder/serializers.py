@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Schedule, ScheduleCourse, ScheduleFaculty, ScheduleSection
+from .models import Schedule, ScheduleCourse, ScheduleFaculty, ScheduleSection, ScheduleSectionTime
 
 class ScheduleSerializer(serializers.ModelSerializer):
     class Meta:
@@ -22,4 +22,10 @@ class ScheduleFacultySerializer(serializers.ModelSerializer):
 class ScheduleSectionSerializer(serializers.ModelSerializer):
     class Meta:
         model = ScheduleSection
+        fields = '__all__'
+
+
+class ScheduleSectionTimeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ScheduleSectionTime
         fields = '__all__'
