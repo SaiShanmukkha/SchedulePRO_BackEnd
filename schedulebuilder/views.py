@@ -27,13 +27,13 @@ def ScheduleSectionTimeAllotment(request):
         except ScheduleSection.DoesNotExist:
             return Response({"error": "ScheduleSection not found."}, status=status.HTTP_404_NOT_FOUND)
 
+        print("\n\n", schedule_section.faculty, schedule_section.day, schedule_section.start_time, schedule_section.end_time, "\n\n")
         
         if (req_faculty_id is not None) and (req_day is None or req_start_time is None or req_end_time is None):
+            existing_ss_time = schedule_section.day is not None and schedule_section.start_time is not None and schedule_section.end_time is not None
 
-            existing_schedule_section_times = ScheduleSectionTime.objects.filter(schedule_section__id=req_section_id)
-
-            # Subcase 1: No faculty assigned schedule section also no times
-            if not schedule_section.faculty and not existing_schedule_section_times:
+            # Subcase 1: No faculty assigned schedule section has no times
+            if not schedule_section.faculty and not existing_ss_time:
                 print("Case 1 <=> Subcase 1")
                 sf = ScheduleFaculty.objects.get(id=req_faculty_id)
                 schedule_section.faculty = sf
@@ -41,7 +41,7 @@ def ScheduleSectionTimeAllotment(request):
                 return Response({"message": "Faculty added successfully."}, status=status.HTTP_200_OK)       
             
             # Subcase 2: only faculty in schedule section but no times
-            elif schedule_section.faculty and not existing_schedule_section_times:
+            elif schedule_section.faculty and not existing_ss_time:
                 print("Case 1 <=> Subcase 2")
                 sf = ScheduleFaculty.objects.get(id=req_faculty_id)
                 schedule_section.faculty = sf
@@ -49,35 +49,102 @@ def ScheduleSectionTimeAllotment(request):
                 return Response({"message": "Faculty Updated successfully."}, status=status.HTTP_200_OK)
 
             # Subcase 3: faculty empty but has schedulesectiontime
-            elif not schedule_section.faculty and existing_schedule_section_times:
+            elif not schedule_section.faculty and existing_ss_time:
                 print("Case 1 <=> Subcase 3")
 
-                # conflict = check_time_conflict(rfacultyid=req_faculty_id, rstarttime, rendtime, rday)
-                conflict = False
-                if conflict:
+                conflicts = check_time_conflict(rsectionid=req_section_id, rfacultyid=req_faculty_id, rstarttime=schedule_section.start_time, rendtime=schedule_section.end_time, rday=schedule_section.day)
+                if conflicts:
                     return Response({"error": "Time conflict detected with the new faculty assignments."}, status=status.HTTP_400_BAD_REQUEST)
 
-
+                sf = ScheduleFaculty.objects.get(id=req_faculty_id)
+                schedule_section.faculty = sf
+                schedule_section.save()
 
                 return Response({"message": "Faculty added successfully."}, status=status.HTTP_200_OK)
 
             # Subcase 4: faculty not empty and has schedulesectiontime
-            elif schedule_section.faculty and existing_schedule_section_times:
+            elif schedule_section.faculty and existing_ss_time:
                 print("Case 1 <=> Subcase 4")
 
-                conflict = False
-                if conflict:
+                conflicts = check_time_conflict(rsectionid=req_section_id, rfacultyid=req_faculty_id, rstarttime=schedule_section.start_time, rendtime=schedule_section.end_time, rday=schedule_section.day)
+                if conflicts:
                     return Response({"error": "Time conflict detected with the new faculty assignments."}, status=status.HTTP_400_BAD_REQUEST)
+                
+                sf = ScheduleFaculty.objects.get(id=req_faculty_id)
+                schedule_section.faculty = sf
+                schedule_section.save()
 
                 return Response({"message": "Faculty Updated successfully."}, status=status.HTTP_200_OK)
 
 
+        elif (req_faculty_id is None) and (req_day is not None and req_start_time is not None and req_end_time is not None):
+            print("Case 2 Request")
+            existing_ss_time = schedule_section.day is not None and schedule_section.start_time is not None and schedule_section.end_time is not None
+            # Subcase 1: No faculty assigned schedule section has no times
+            if not schedule_section.faculty and not existing_ss_time:
+                print("Case 2 <=> Subcase 1")
+                schedule_section.day = req_day
+                schedule_section.start_time = req_start_time
+                schedule_section.end_time = req_end_time
+                schedule_section.save()
+                return Response({"message": "Added timings successfully."}, status=status.HTTP_200_OK)
 
-        # elif (faculty_id is None) and (day is not None and start_time is not None and end_time is not None):
-        #     print("Case 2 Request")
+            # Subcase 2: No faculty assigned schedule section has times
+            if not schedule_section.faculty and existing_ss_time:
+                print("Case 2 <=> Subcase 2")
+                schedule_section.day = req_day
+                schedule_section.start_time = req_start_time
+                schedule_section.end_time = req_end_time
+                schedule_section.save()
 
-        # elif (faculty_id is not None) and (day is not None) and (start_time is not None) and (end_time is not None):
-        #     print("Case 3 Request")
+                return Response({"message": "Updated timings successfully."}, status=status.HTTP_200_OK)
+
+            # Subcase 3: faculty assigned schedule section also no times
+            if schedule_section.faculty and not existing_ss_time:
+                print("Case 2 <=> Subcase 3")
+                conflicts = check_time_conflict(rsectionid=req_section_id, rfacultyid=schedule_section.faculty, rstarttime=req_start_time, rendtime=req_end_time, rday=req_day)
+                if conflicts:
+                    return Response({"error": "Time conflict detected with the faculty assignments."}, status=status.HTTP_400_BAD_REQUEST)
+                schedule_section.day = req_day
+                schedule_section.start_time = req_start_time
+                schedule_section.end_time = req_end_time
+                schedule_section.save()
+
+                return Response({"message": "Added timings successfully."}, status=status.HTTP_200_OK)
+
+            # Subcase 4: Faculty assigned and schedule section also has times
+            if schedule_section.faculty and existing_ss_time:
+                print("Case 2 <=> Subcase 4")
+                conflicts = check_time_conflict(rsectionid=req_section_id, rfacultyid=schedule_section.faculty, rstarttime=req_start_time, rendtime=req_end_time, rday=req_day)
+                if conflicts:
+                    return Response({"error": "Time conflict detected with the faculty assignments."}, status=status.HTTP_400_BAD_REQUEST)
+                schedule_section.day = req_day
+                schedule_section.start_time = req_start_time
+                schedule_section.end_time = req_end_time
+                schedule_section.save()
+
+                return Response({"message": "Updated timings successfully."}, status=status.HTTP_200_OK)
+
+        elif (req_faculty_id is not None) and (req_day is not None) and (req_start_time is not None) and (req_end_time is not None):
+            print("Case 3 Request")
+            existing_ss_time = schedule_section.day is not None and schedule_section.start_time is not None and schedule_section.end_time is not None
+        
+            print("Case 3")
+            conflicts = check_time_conflict(rsectionid=req_section_id, rfacultyid=req_faculty_id, rstarttime=req_start_time, rendtime=req_end_time, rday=req_day)
+            if conflicts:
+                return Response({"error": "Time conflict detected with the faculty assignments."}, status=status.HTTP_400_BAD_REQUEST)
+            
+            sf = ScheduleFaculty.objects.get(id=req_faculty_id)
+            schedule_section.faculty = sf
+            schedule_section.day = req_day
+            schedule_section.start_time = req_start_time
+            schedule_section.end_time = req_end_time
+            schedule_section.save()
+
+            if existing_ss_time:
+                Response({"message": "Updated faculty and timings successfully."}, status=status.HTTP_200_OK)
+
+            return Response({"message": "Added faculty and timings successfully."}, status=status.HTTP_200_OK)
 
         else:
             return Response({"error": "Invalid Data."}, status=status.HTTP_400_BAD_REQUEST)

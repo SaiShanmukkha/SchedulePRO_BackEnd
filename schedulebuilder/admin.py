@@ -4,7 +4,7 @@ from .models import Schedule, ScheduleFaculty, ScheduleRoom, ScheduleCourse, Sch
 
 
 class ScheduleAdmin(admin.ModelAdmin):
-    list_display  = ["id", "name", "semester", "department", "slug", "lastUpdated", "createdAt", "status"]
+    list_display = ["id", "name", "semester", "department", "slug", "lastUpdated", "createdAt", "status"]
 
 
 class ScheduleCourseAdmin(admin.ModelAdmin):
@@ -12,7 +12,7 @@ class ScheduleCourseAdmin(admin.ModelAdmin):
 
 
 class ScheduleSectionAdmin(admin.ModelAdmin):
-    list_display = ["id", "schedule", "schedule_course", "section_name", "sectionType", "faculty"]
+    list_display = ["id", "schedule", "schedule_course", "section_name", "sectionType", "faculty", "day", "start_time", "end_time"]
 
 class ScheduleFacultyAdmin(admin.ModelAdmin):
     list_display = ["id", "schedule", "name", "faculty"]
