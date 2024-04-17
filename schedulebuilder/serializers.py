@@ -1,7 +1,6 @@
 from rest_framework import serializers
-
 from main.serializers import CustomFacultySerializer
-from .models import Schedule, ScheduleCourse, ScheduleFaculty, ScheduleSection, ScheduleSectionTime
+from .models import Schedule, ScheduleCourse, ScheduleFaculty, ScheduleSection
 
 class ScheduleSerializer(serializers.ModelSerializer):
     class Meta:
@@ -23,14 +22,38 @@ class ScheduleFacultySerializer(serializers.ModelSerializer):
 
 class ScheduleSectionSerializer(serializers.ModelSerializer):
     faculty = CustomFacultySerializer(read_only=True)
-
+    start_time = serializers.TimeField(format='%H:%M')
+    end_time = serializers.TimeField(format='%H:%M')
     class Meta:
         model = ScheduleSection
         fields = '__all__' 
 
-
-
-class ScheduleSectionTimeSerializer(serializers.ModelSerializer):
+class ScheduleSectionCRUDSerializer(serializers.ModelSerializer):
+    start_time = serializers.TimeField(format='%H:%M')
+    end_time = serializers.TimeField(format='%H:%M')
     class Meta:
-        model = ScheduleSectionTime
-        fields = '__all__'
+        model = ScheduleSection
+        exclude = ["lastUpdated", "createdAt"]
+
+
+# class ScheduleSectionTimeSerializer(serializers.ModelSerializer):
+#     start_time = serializers.TimeField(format='%H:%M')
+#     end_time = serializers.TimeField(format='%H:%M')
+#     class Meta:
+#         model = ScheduleSectionTime
+#         fields = '__all__'
+
+
+# class CUSTOMScheduleFacultySerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = ScheduleFaculty
+#         fields = ['id', 'name']
+
+# class CUSTOMScheduleSectionTimeSerializer(serializers.ModelSerializer):
+#     faculty_details = CUSTOMScheduleFacultySerializer(source='schedule_section.faculty', read_only=True)
+#     start_time = serializers.TimeField(format='%H:%M')
+#     end_time = serializers.TimeField(format='%H:%M')
+
+#     class Meta:
+#         model = ScheduleSectionTime
+#         fields = ['id', 'schedule', 'schedule_course', 'schedule_section', 'day', 'start_time', 'end_time', 'faculty_details']
