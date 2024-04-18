@@ -1,8 +1,9 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+
+from schedulebuilder.models import ScheduleCourse
 from .models import Course, CourseCorequisite, Department, Faculty, Semester
 from .serializers import CourseCorequisiteSerializer, CourseSerializer, DepartmentSerializer, FacultySerializer, SemesterSerializer
-
 
 @api_view(['GET'])
 def CourseCorequisitesListView(request):
@@ -45,10 +46,35 @@ def DepartmentsView(request):
     return Response(serializer.data)
 
 @api_view(['GET'])
-def course_corequisites_view(request, course_id):
-    try:
-        corequisites = CourseCorequisite.objects.filter(course_id=course_id)
-        serializer = CourseCorequisiteSerializer(corequisites, many=True)
-        return Response(serializer.data)
-    except CourseCorequisite.DoesNotExist:
-        return Response({'error': 'Course not found or no corequisites available.'}, status=404)
+def course_corequisites_view(request, scheduleId):
+    schedule_courses = ScheduleCourse.objects.filter(schedule=scheduleId).select_related('course')
+
+    course_corequisites_data = []
+
+    for sc in schedule_courses:
+        if sc.course: 
+            corequisites = CourseCorequisite.objects.filter(course=sc.course)
+
+            if not corequisites:
+                continue
+
+            serializer = CourseCorequisiteSerializer(corequisites, many=True)
+
+            grouped = {'mandatory': [], 'choice': []}
+            for item in serializer.data:
+                if item['Type'].lower() == 'mandatory':
+                    grouped['mandatory'].append(item['corequisite'])
+                else:
+                    grouped['choice'].append(item['corequisite'])
+
+            course_corequisites_data.append({
+                'course_info': {
+                    'id': sc.course.id,
+                    'name': sc.course.name,
+                    'code': sc.course.code,
+                    'department': sc.course.department.name
+                },
+                'corequisites': grouped
+            })
+
+    return Response(course_corequisites_data)

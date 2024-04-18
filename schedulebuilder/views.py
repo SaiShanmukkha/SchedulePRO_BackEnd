@@ -6,18 +6,18 @@ from schedulebuilder.utils import check_time_conflict
 from .serializers import ScheduleSectionCRUDSerializer, ScheduleSerializer, ScheduleSectionSerializer, ScheduleCourseSerializer, ScheduleFacultySerializer
 from .models import Schedule, ScheduleFaculty, ScheduleCourse, ScheduleSection
 
-
-
 @api_view(['POST'])
 def ScheduleSectionTimeAllotment(request):
         data = request.data
-        req_section_id = data.get('schedule_section')
+        
+        print("\n\nData from request:\n", data, "\n\n")
+
+        req_section_id = data.get('id')
         req_faculty_id = data.get('faculty')
         req_day = data.get('day')
         req_start_time = data.get('start_time')
         req_end_time = data.get('end_time')
 
-        print("\n\n", data, "\n\n")
 
         if req_section_id is None:
             return Response({"error": "Schedule section ID is required."}, status=status.HTTP_400_BAD_REQUEST)
@@ -38,7 +38,8 @@ def ScheduleSectionTimeAllotment(request):
                 sf = ScheduleFaculty.objects.get(id=req_faculty_id)
                 schedule_section.faculty = sf
                 schedule_section.save()
-                return Response({"message": "Faculty added successfully."}, status=status.HTTP_200_OK)       
+                ssd_serializer = ScheduleSectionSerializer(schedule_section)
+                return Response({"message": "Faculty added successfully.", "data": ssd_serializer.data}, status=status.HTTP_200_OK)       
             
             # Subcase 2: only faculty in schedule section but no times
             elif schedule_section.faculty and not existing_ss_time:
@@ -46,7 +47,8 @@ def ScheduleSectionTimeAllotment(request):
                 sf = ScheduleFaculty.objects.get(id=req_faculty_id)
                 schedule_section.faculty = sf
                 schedule_section.save()
-                return Response({"message": "Faculty Updated successfully."}, status=status.HTTP_200_OK)
+                ssd_serializer = ScheduleSectionSerializer(schedule_section)
+                return Response({"message": "Faculty Updated successfully.", "data": ssd_serializer.data}, status=status.HTTP_200_OK)
 
             # Subcase 3: faculty empty but has schedulesectiontime
             elif not schedule_section.faculty and existing_ss_time:
@@ -59,8 +61,8 @@ def ScheduleSectionTimeAllotment(request):
                 sf = ScheduleFaculty.objects.get(id=req_faculty_id)
                 schedule_section.faculty = sf
                 schedule_section.save()
-
-                return Response({"message": "Faculty added successfully."}, status=status.HTTP_200_OK)
+                ssd_serializer = ScheduleSectionSerializer(schedule_section)
+                return Response({"message": "Faculty added successfully.", "data": ssd_serializer.data}, status=status.HTTP_200_OK)
 
             # Subcase 4: faculty not empty and has schedulesectiontime
             elif schedule_section.faculty and existing_ss_time:
@@ -73,8 +75,8 @@ def ScheduleSectionTimeAllotment(request):
                 sf = ScheduleFaculty.objects.get(id=req_faculty_id)
                 schedule_section.faculty = sf
                 schedule_section.save()
-
-                return Response({"message": "Faculty Updated successfully."}, status=status.HTTP_200_OK)
+                ssd_serializer = ScheduleSectionSerializer(schedule_section)
+                return Response({"message": "Faculty Updated successfully.", "data": ssd_serializer.data}, status=status.HTTP_200_OK)
 
 
         elif (req_faculty_id is None) and (req_day is not None and req_start_time is not None and req_end_time is not None):
@@ -87,7 +89,8 @@ def ScheduleSectionTimeAllotment(request):
                 schedule_section.start_time = req_start_time
                 schedule_section.end_time = req_end_time
                 schedule_section.save()
-                return Response({"message": "Added timings successfully."}, status=status.HTTP_200_OK)
+                ssd_serializer = ScheduleSectionSerializer(schedule_section)
+                return Response({"message": "Added timings successfully.", "data": ssd_serializer.data}, status=status.HTTP_200_OK)
 
             # Subcase 2: No faculty assigned schedule section has times
             if not schedule_section.faculty and existing_ss_time:
@@ -96,8 +99,8 @@ def ScheduleSectionTimeAllotment(request):
                 schedule_section.start_time = req_start_time
                 schedule_section.end_time = req_end_time
                 schedule_section.save()
-
-                return Response({"message": "Updated timings successfully."}, status=status.HTTP_200_OK)
+                ssd_serializer = ScheduleSectionSerializer(schedule_section)
+                return Response({"message": "Updated timings successfully.", "data": ssd_serializer.data}, status=status.HTTP_200_OK)
 
             # Subcase 3: faculty assigned schedule section also no times
             if schedule_section.faculty and not existing_ss_time:
@@ -109,8 +112,8 @@ def ScheduleSectionTimeAllotment(request):
                 schedule_section.start_time = req_start_time
                 schedule_section.end_time = req_end_time
                 schedule_section.save()
-
-                return Response({"message": "Added timings successfully."}, status=status.HTTP_200_OK)
+                ssd_serializer = ScheduleSectionSerializer(schedule_section)
+                return Response({"message": "Added timings successfully.", "data": ssd_serializer.data}, status=status.HTTP_200_OK)
 
             # Subcase 4: Faculty assigned and schedule section also has times
             if schedule_section.faculty and existing_ss_time:
@@ -122,8 +125,8 @@ def ScheduleSectionTimeAllotment(request):
                 schedule_section.start_time = req_start_time
                 schedule_section.end_time = req_end_time
                 schedule_section.save()
-
-                return Response({"message": "Updated timings successfully."}, status=status.HTTP_200_OK)
+                ssd_serializer = ScheduleSectionSerializer(schedule_section)
+                return Response({"message": "Updated timings successfully.", "data": ssd_serializer.data}, status=status.HTTP_200_OK)
 
         elif (req_faculty_id is not None) and (req_day is not None) and (req_start_time is not None) and (req_end_time is not None):
             print("Case 3 Request")
@@ -140,11 +143,11 @@ def ScheduleSectionTimeAllotment(request):
             schedule_section.start_time = req_start_time
             schedule_section.end_time = req_end_time
             schedule_section.save()
-
+            ssd_serializer = ScheduleSectionSerializer(schedule_section)
             if existing_ss_time:
-                Response({"message": "Updated faculty and timings successfully."}, status=status.HTTP_200_OK)
+                Response({"message": "Updated faculty and timings successfully.", "data": ssd_serializer.data}, status=status.HTTP_200_OK)
 
-            return Response({"message": "Added faculty and timings successfully."}, status=status.HTTP_200_OK)
+            return Response({"message": "Added faculty and timings successfully.", "data": ssd_serializer.data}, status=status.HTTP_200_OK)
 
         else:
             return Response({"error": "Invalid Data."}, status=status.HTTP_400_BAD_REQUEST)
@@ -164,7 +167,6 @@ def SchedulesView(request):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
-
 
 @api_view(['GET', 'PUT'])
 def schedule_detail_view(request, pk):
@@ -334,76 +336,3 @@ def schedule_section_view(request, schedule_pk, schedule_course_pk, pk=None):
 
 
 
-
-# @api_view(['GET', 'POST', 'PUT', 'DELETE'])
-# def schedule_section_time_view(request, schedule_pk, schedule_course_pk, schedule_section_pk):
-   
-#     if request.method == 'GET':
-#         times = ScheduleSectionTime.objects.filter(
-#             schedule_id=schedule_pk,
-#             schedule_course_id=schedule_course_pk,
-#             schedule_section_id=schedule_section_pk
-#         )
-#         serializer = ScheduleSectionTimeSerializer(times, many=True)
-#         return Response(serializer.data)
-
-#     elif request.method == 'POST':
-#         serializer = CUSTOMScheduleSectionTimeSerializer(data=request.data)
-#         if serializer.is_valid():
-#             faculty_id = serializer.validated_data.get('schedule_section').faculty.id
-#             day = serializer.validated_data.get('day')
-#             start_time = serializer.validated_data.get('start_time')
-#             end_time = serializer.validated_data.get('end_time')
-
-#             if check_faculty_time_collision(faculty_id, day, start_time, end_time):
-#                 return Response({'error': 'Scheduling conflict detected for the faculty.'}, status=status.HTTP_409_CONFLICT)
-
-#             serializer.save(schedule_id=schedule_pk, schedule_course_id=schedule_course_pk, schedule_section_id=schedule_section_pk)
-#             return Response(serializer.data, status=status.HTTP_201_CREATED)
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-#     elif request.method == 'PUT':
-#         time_entry = ScheduleSectionTime.objects.filter(
-#             pk=request.data.get('id', 0),
-#             schedule_id=schedule_pk,
-#             schedule_course_id=schedule_course_pk,
-#             schedule_section_id=schedule_section_pk
-#         ).first()
-
-#         if not time_entry:
-#             return Response({'error': 'Time entry not found'}, status=status.HTTP_404_NOT_FOUND)
-
-#         serializer = CUSTOMScheduleSectionTimeSerializer(time_entry, data=request.data, partial=True) # Allow partial updates
-#         if serializer.is_valid():
-#             faculty_id = serializer.validated_data.get('schedule_section').faculty.id
-#             day = serializer.validated_data.get('day')
-#             start_time = serializer.validated_data.get('start_time')
-#             end_time = serializer.validated_data.get('end_time')
-
-#             if check_faculty_time_collision(faculty_id, day, start_time, end_time, existing_id=time_entry.id):
-#                 return Response({'error': 'Scheduling conflict detected for the faculty.'}, status=status.HTTP_409_CONFLICT)
-
-#             serializer.save()
-#             return Response(serializer.data)
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)    
-    
-#     elif request.method == 'DELETE':
-#         try:
-#             time_entry = ScheduleSectionTime.objects.get(
-#                 pk=request.data['id'],
-#                 schedule_id=schedule_pk,
-#                 schedule_course_id=schedule_course_pk,
-#                 schedule_section_id=schedule_section_pk
-#             )
-#             time_entry.delete()
-#             return Response(status=status.HTTP_204_NO_CONTENT)
-#         except ScheduleSectionTime.DoesNotExist:
-#             return Response({'error': 'Time entry not found'}, status=status.HTTP_404_NOT_FOUND)
-
-
-# @api_view(['GET'])
-# def schedule_section_time_list(request, schedule_pk):
-#     if request.method == 'GET':
-#         sections_time = ScheduleSectionTime.objects.filter(schedule_course__schedule=schedule_pk)
-#         serializer = ScheduleSectionTimeSerializer(sections_time, many=True)
-#         return Response(serializer.data)

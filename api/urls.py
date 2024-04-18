@@ -1,4 +1,4 @@
-from main.views import CoursesView, FacultyView, SemesterView, CourseCorequisitesListView, CourseCorequisitesView, DepartmentsView
+from main.views import CoursesView, FacultyView, SemesterView, CourseCorequisitesView, DepartmentsView, course_corequisites_view
 from django.urls import path
 from schedulebuilder.views import ScheduleSectionTimeAllotment, SchedulesView, schedule_detail_view, schedule_faculty_view, schedule_course_view, schedule_section_view, schedule_section_list
 
@@ -8,7 +8,7 @@ urlpatterns = [
     path(route='departments/', view=DepartmentsView, name='departments'),
     path(route='semesters/', view=SemesterView, name='semesters'),
     path(route='courses/<int:course_id>/corequisites/', view=CourseCorequisitesView, name='course-corequisites'),
-    path(route='course-corequisites/', view=CourseCorequisitesListView, name='course-corequisites'),
+    path(route='course-corequisites/schedule/<int:scheduleId>/', view=course_corequisites_view, name='course-corequisites'),
     path(route="schedules/", view=SchedulesView, name="Schedules"),
     path(route='schedules/<int:pk>/', view=schedule_detail_view, name='schedule-details'),
     path(route='schedules/<int:schedule_pk>/faculties/', view=schedule_faculty_view, name='schedule-faculty-list'),

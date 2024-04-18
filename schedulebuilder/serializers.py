@@ -29,8 +29,6 @@ class ScheduleSectionSerializer(serializers.ModelSerializer):
         fields = '__all__' 
 
 class ScheduleSectionCRUDSerializer(serializers.ModelSerializer):
-    start_time = serializers.TimeField(format='%H:%M')
-    end_time = serializers.TimeField(format='%H:%M')
     class Meta:
         model = ScheduleSection
         exclude = ["lastUpdated", "createdAt"]
