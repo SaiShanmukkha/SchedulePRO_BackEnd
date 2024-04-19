@@ -1,12 +1,19 @@
 from rest_framework import serializers
+from main.models import Department
 from main.serializers import CustomFacultySerializer, DepartmentSerializer
 from .models import Schedule, ScheduleCourse, ScheduleFaculty, ScheduleSection
 
 class ScheduleSerializer(serializers.ModelSerializer):
-    department = DepartmentSerializer(read_only=True)
+    department = DepartmentSerializer()
     class Meta:
         model = Schedule
         fields = "__all__"
+
+class ScheduleCRUDSerializer(serializers.ModelSerializer):
+    department = serializers.PrimaryKeyRelatedField(queryset=Department.objects.all(), allow_null=True)
+    class Meta:
+        model = Schedule
+        fields = ['id', 'name', 'semester', 'status', 'department', 'createdAt', 'lastUpdated', 'slug']
 
 class ScheduleCourseSerializer(serializers.ModelSerializer):
     credits = serializers.SerializerMethodField()

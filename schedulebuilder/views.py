@@ -3,7 +3,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
 from schedulebuilder.utils import check_time_conflict
-from .serializers import ScheduleSectionCRUDSerializer, ScheduleSerializer, ScheduleSectionSerializer, ScheduleCourseSerializer, ScheduleFacultySerializer
+from .serializers import ScheduleCRUDSerializer, ScheduleSectionCRUDSerializer, ScheduleSerializer, ScheduleSectionSerializer, ScheduleCourseSerializer, ScheduleFacultySerializer
 from .models import Schedule, ScheduleFaculty, ScheduleCourse, ScheduleSection
 
 @api_view(['POST'])
@@ -161,7 +161,7 @@ def SchedulesView(request):
         serealized_data = ScheduleSerializer(schObjs, many=True)
         return Response(serealized_data.data)
     elif request.method == 'POST':
-        serializer = ScheduleSerializer(data=request.data)
+        serializer = ScheduleCRUDSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
