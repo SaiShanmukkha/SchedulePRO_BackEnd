@@ -1,8 +1,9 @@
 from rest_framework import serializers
-from main.serializers import CustomFacultySerializer
+from main.serializers import CustomFacultySerializer, DepartmentSerializer
 from .models import Schedule, ScheduleCourse, ScheduleFaculty, ScheduleSection
 
 class ScheduleSerializer(serializers.ModelSerializer):
+    department = DepartmentSerializer(read_only=True)
     class Meta:
         model = Schedule
         fields = "__all__"
@@ -32,26 +33,3 @@ class ScheduleSectionCRUDSerializer(serializers.ModelSerializer):
     class Meta:
         model = ScheduleSection
         exclude = ["lastUpdated", "createdAt"]
-
-
-# class ScheduleSectionTimeSerializer(serializers.ModelSerializer):
-#     start_time = serializers.TimeField(format='%H:%M')
-#     end_time = serializers.TimeField(format='%H:%M')
-#     class Meta:
-#         model = ScheduleSectionTime
-#         fields = '__all__'
-
-
-# class CUSTOMScheduleFacultySerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = ScheduleFaculty
-#         fields = ['id', 'name']
-
-# class CUSTOMScheduleSectionTimeSerializer(serializers.ModelSerializer):
-#     faculty_details = CUSTOMScheduleFacultySerializer(source='schedule_section.faculty', read_only=True)
-#     start_time = serializers.TimeField(format='%H:%M')
-#     end_time = serializers.TimeField(format='%H:%M')
-
-#     class Meta:
-#         model = ScheduleSectionTime
-#         fields = ['id', 'schedule', 'schedule_course', 'schedule_section', 'day', 'start_time', 'end_time', 'faculty_details']

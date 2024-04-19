@@ -62,10 +62,10 @@ def course_corequisites_view(request, scheduleId):
 
             grouped = {'mandatory': [], 'choice': []}
             for item in serializer.data:
-                if item['Type'].lower() == 'mandatory':
-                    grouped['mandatory'].append(item['corequisite'])
-                else:
+                if item['Type'].lower() == 'choice':
                     grouped['choice'].append(item['corequisite'])
+                else:
+                    grouped['mandatory'].append(item['corequisite'])
 
             course_corequisites_data.append({
                 'course_info': {

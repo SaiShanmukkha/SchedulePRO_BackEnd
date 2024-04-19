@@ -89,20 +89,3 @@ class ScheduleSection(models.Model):
     class Meta:
         unique_together = ['schedule_course', 'section_name', 'sectionType', 'day', 'start_time', 'end_time']
 
-
-# class ScheduleSectionTime(models.Model):
-#     schedule = models.ForeignKey(Schedule, on_delete=models.CASCADE)
-#     schedule_course = models.ForeignKey(ScheduleCourse, on_delete=models.CASCADE)
-#     schedule_section = models.ForeignKey(ScheduleSection, on_delete=models.CASCADE)
-#     day = models.CharField(max_length=5, null=True, blank=True)
-#     start_time = models.TimeField(null=True, blank=True)
-#     end_time = models.TimeField(null=True, blank=True)
-    
-#     def __str__(self) -> str:
-#         start_time_str = self.start_time.strftime('%H:%M') if self.start_time else 'None'
-#         end_time_str = self.end_time.strftime('%H:%M') if self.end_time else 'None'
-#         day_str = self.day if self.day else 'No Day'
-#         return f"{self.schedule.name} {self.schedule_course.name} {self.schedule_section.section_name} {day_str} {start_time_str}-{end_time_str}"
-    
-#     class Meta:
-#         unique_together = ['schedule', 'schedule_course', 'schedule_section', 'day', 'start_time', 'end_time']

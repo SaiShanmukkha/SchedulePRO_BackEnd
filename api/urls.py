@@ -19,8 +19,6 @@ urlpatterns = [
     path(route='schedules/<int:schedule_pk>/courses/<int:schedule_course_pk>/sections/', view=schedule_section_view, name='schedule_sections'),
     path(route='schedules/<int:schedule_pk>/courses/<int:schedule_course_pk>/sections/<int:pk>/', view=schedule_section_view, name='schedule_section_detail'),
     path(route='schedules/schedule-section-times/', view=ScheduleSectionTimeAllotment, name='schedule-section-times'),
-    # path(route='schedules/<int:schedule_pk>/section-times/', view=schedule_section_time_list, name='schedule_section_time_list'),
-    # path(route='schedules/<int:schedule_pk>/courses/<int:schedule_course_pk>/sections/<int:schedule_section_pk>/times/', view=schedule_section_time_view, name='schedule_section_detail'),
 ]
 
 

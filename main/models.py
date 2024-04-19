@@ -79,12 +79,12 @@ class Course(models.Model):
 
 class CoursePrerequisite(models.Model):
     TYPE_CHOICES = [
-        ("Mandetory", "Mandetory"),
+        ("Mandatory", "Mandatory"),
         ("Choice", "Choice")
     ]
     course = models.ForeignKey(Course, on_delete=models.PROTECT, related_name='course_prerequisites')
     prerequisite = models.ForeignKey(Course, on_delete=models.PROTECT, related_name='is_prerequisite_for')
-    Type = models.CharField(max_length=255, default="Mandetory", choices=TYPE_CHOICES)
+    Type = models.CharField(max_length=255, default="Mandatory", choices=TYPE_CHOICES)
     Condition = models.CharField(max_length=255, default="grade of 'C' or better")
 
     class Meta:
