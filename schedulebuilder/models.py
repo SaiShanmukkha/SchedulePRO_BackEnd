@@ -74,7 +74,7 @@ class ScheduleSection(models.Model):
     ]
     schedule = models.ForeignKey(Schedule, on_delete=models.CASCADE)
     schedule_course = models.ForeignKey(ScheduleCourse, on_delete=models.CASCADE)
-    faculty = models.ForeignKey(ScheduleFaculty, on_delete=models.CASCADE, null=True, blank=True)
+    faculty = models.ForeignKey(ScheduleFaculty, on_delete=models.SET_NULL, null=True, blank=True)
     sectionType = models.CharField(max_length=255, default='Class', choices=TYPE_CHOICES)
     section_name = models.CharField(max_length=255)
     lastUpdated = models.DateTimeField(auto_now=True)

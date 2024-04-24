@@ -4,7 +4,7 @@ from main.serializers import CustomFacultySerializer, DepartmentSerializer
 from .models import Schedule, ScheduleCourse, ScheduleFaculty, ScheduleSection
 
 class ScheduleSerializer(serializers.ModelSerializer):
-    department = DepartmentSerializer()
+    department = DepartmentSerializer(read_only=True)
     class Meta:
         model = Schedule
         fields = "__all__"
