@@ -1,3 +1,4 @@
+from django.http import FileResponse, HttpResponse
 from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -5,6 +6,56 @@ from rest_framework import status
 from schedulebuilder.utils import check_time_conflict
 from .serializers import ScheduleCRUDSerializer, ScheduleSectionCRUDSerializer, ScheduleSerializer, ScheduleSectionSerializer, ScheduleCourseSerializer, ScheduleFacultySerializer
 from .models import Schedule, ScheduleFaculty, ScheduleCourse, ScheduleSection
+import pandas as pd
+import io
+from datetime import datetime
+
+@api_view(['POST', 'GET'])
+def schedule_download(request, schedule_pk):
+    if not Schedule.objects.filter(pk=schedule_pk).exists():
+        return HttpResponse("Schedule not found.", status=404)
+    
+    schedule_sections = ScheduleSection.objects.filter(schedule=schedule_pk).select_related(
+        'schedule_course__course__department',  
+        'faculty__faculty__department' 
+    )
+
+    data = []
+    for section in schedule_sections:
+        course = section.schedule_course.course if section.schedule_course else None
+        department_code = course.department.code if course and course.department else ''
+        course_code = course.code if course else ''
+        course_name = course.name if course else ''
+        faculty_name = section.faculty.faculty.name if section.faculty and section.faculty.faculty else ''
+
+        if section.start_time and section.end_time:
+            time_range = f"{section.start_time.strftime('%H:%M')} - {section.end_time.strftime('%H:%M')}"
+        else:
+            time_range = ''
+
+        data.append({
+            'Departmentcode': department_code,
+            'Coursecode': course_code,
+            'Coursename': course_name,
+            'Sectionname': section.section_name,
+            'Facultyname': faculty_name,
+            'Day': section.day or '',
+            'Time': time_range
+        })
+
+    df = pd.DataFrame(data)
+    
+    excel_buffer = io.BytesIO()
+    with pd.ExcelWriter(excel_buffer, engine='xlsxwriter') as writer:
+        df.to_excel(writer, sheet_name='Schedule', index=False)
+    excel_buffer.seek(0)
+
+    response = HttpResponse(excel_buffer.read(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = f'attachment; filename="downloaded_file_{datetime.now()}.xlsx"'
+    excel_buffer.close()
+    
+    return response
+
 
 @api_view(['POST'])
 def ScheduleSectionTimeAllotment(request):
