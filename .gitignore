@@ -2,7 +2,6 @@ djano_env/
 __pycache__/
 .env
 .env.*
-db.sqlite3
 .vscode/
 static_cdn/
 media/*
