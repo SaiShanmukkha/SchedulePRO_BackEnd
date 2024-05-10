@@ -9,6 +9,60 @@ from .models import Schedule, ScheduleFaculty, ScheduleCourse, ScheduleSection
 import pandas as pd
 import io
 from datetime import datetime
+from django.db.models import Max, F
+from .models import ScheduleCourse, ScheduleSection
+from .serializers import ScheduleSectionSerializer
+
+@api_view(['POST'])
+def add_new_schedule_section(request, schedule_pk, schedule_course_pk):
+    if request.method == 'POST':
+        section_type = request.data.get('sectionType')
+        if section_type not in ['Lab', 'Class']:
+            return HttpResponse("Invalid Section Type.", status=404)
+
+        sections = ScheduleSection.objects.filter(schedule_course_id=schedule_course_pk)
+
+        sorted_sections = sections.order_by('section_name')
+
+        last_section_same_type = sorted_sections.filter(sectionType=section_type).last()
+        if(last_section_same_type):
+            last_section_same_type_num = last_section_same_type.section_name[-1]
+        else:
+            last_section_same_type_num = 0
+            
+        if section_type == "Lab":
+            new_section_name = f"Lab_{int(last_section_same_type_num)+1}"
+        else:
+            new_section_name = f"Sec_{int(last_section_same_type_num)+1}"
+        
+
+        new_section_data = {
+            'schedule': schedule_pk,
+            'schedule_course': schedule_course_pk,
+            'sectionType': section_type,
+            'section_name': new_section_name,
+            'day': request.data.get('day'),
+            'end_time': request.data.get('end_time'),
+            'start_time': request.data.get('start_time')
+        }
+
+        serializer = ScheduleSectionCRUDSerializer(data=new_section_data)
+        
+
+        if serializer.is_valid():
+            serializer.save()
+            if(section_type == 'Class'):
+                ScheduleCourse.objects.filter(id=schedule_course_pk).update(
+                        number_of_sections=F('number_of_sections') + 1
+                    )
+            else:
+                ScheduleCourse.objects.filter(id=schedule_course_pk).update(
+                        number_of_labs=F('number_of_labs') + 1
+                    )
+
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 @api_view(['POST', 'GET'])
 def schedule_download(request, schedule_pk):
@@ -107,7 +161,7 @@ def ScheduleSectionTimeAllotment(request):
 
                 conflicts = check_time_conflict(rsectionid=req_section_id, rfacultyid=req_faculty_id, rstarttime=schedule_section.start_time, rendtime=schedule_section.end_time, rday=schedule_section.day)
                 if conflicts:
-                    return Response({"error": "Time conflict detected with the new faculty assignments."}, status=status.HTTP_400_BAD_REQUEST)
+                    return Response({"error": "Time conflict detected with the new faculty assignments.", "conflicts":conflicts}, status=status.HTTP_400_BAD_REQUEST)
 
                 sf = ScheduleFaculty.objects.get(id=req_faculty_id)
                 schedule_section.faculty = sf
@@ -121,7 +175,7 @@ def ScheduleSectionTimeAllotment(request):
 
                 conflicts = check_time_conflict(rsectionid=req_section_id, rfacultyid=req_faculty_id, rstarttime=schedule_section.start_time, rendtime=schedule_section.end_time, rday=schedule_section.day)
                 if conflicts:
-                    return Response({"error": "Time conflict detected with the new faculty assignments."}, status=status.HTTP_400_BAD_REQUEST)
+                    return Response({"error": "Time conflict detected with the new faculty assignments.", "conflicts":conflicts}, status=status.HTTP_400_BAD_REQUEST)
                 
                 sf = ScheduleFaculty.objects.get(id=req_faculty_id)
                 schedule_section.faculty = sf
@@ -158,7 +212,7 @@ def ScheduleSectionTimeAllotment(request):
                 print("Case 2 <=> Subcase 3")
                 conflicts = check_time_conflict(rsectionid=req_section_id, rfacultyid=schedule_section.faculty, rstarttime=req_start_time, rendtime=req_end_time, rday=req_day)
                 if conflicts:
-                    return Response({"error": "Time conflict detected with the faculty assignments."}, status=status.HTTP_400_BAD_REQUEST)
+                    return Response({"error": "Time conflict detected with the faculty assignments.", "conflicts":conflicts}, status=status.HTTP_400_BAD_REQUEST)
                 schedule_section.day = req_day
                 schedule_section.start_time = req_start_time
                 schedule_section.end_time = req_end_time
@@ -171,7 +225,7 @@ def ScheduleSectionTimeAllotment(request):
                 print("Case 2 <=> Subcase 4")
                 conflicts = check_time_conflict(rsectionid=req_section_id, rfacultyid=schedule_section.faculty, rstarttime=req_start_time, rendtime=req_end_time, rday=req_day)
                 if conflicts:
-                    return Response({"error": "Time conflict detected with the faculty assignments."}, status=status.HTTP_400_BAD_REQUEST)
+                    return Response({"error": "Time conflict detected with the faculty assignments.", "conflicts":conflicts}, status=status.HTTP_400_BAD_REQUEST)
                 schedule_section.day = req_day
                 schedule_section.start_time = req_start_time
                 schedule_section.end_time = req_end_time
@@ -186,7 +240,7 @@ def ScheduleSectionTimeAllotment(request):
             print("Case 3")
             conflicts = check_time_conflict(rsectionid=req_section_id, rfacultyid=req_faculty_id, rstarttime=req_start_time, rendtime=req_end_time, rday=req_day)
             if conflicts:
-                return Response({"error": "Time conflict detected with the faculty assignments."}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({"error": "Time conflict detected with the faculty assignments.", "conflicts":conflicts}, status=status.HTTP_400_BAD_REQUEST)
             
             sf = ScheduleFaculty.objects.get(id=req_faculty_id)
             schedule_section.faculty = sf
@@ -332,7 +386,6 @@ def schedule_section_list(request, schedule_pk):
         return Response(serializer.data)
 
 
-
 @api_view(['GET', 'POST', 'PUT', 'DELETE'])
 def schedule_section_view(request, schedule_pk, schedule_course_pk, pk=None):
     schedule = get_object_or_404(Schedule, pk=schedule_pk)
@@ -378,8 +431,20 @@ def schedule_section_view(request, schedule_pk, schedule_course_pk, pk=None):
         return Response(crud_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     elif request.method == 'DELETE':
+        schedule_course = get_object_or_404(ScheduleCourse, pk=schedule_course.pk)
+        if schedule_course.number_of_labs + schedule_course.number_of_sections == 1:
+            return Response({'error': 'Only one Section in this Course. Please delete course.'}, status=status.HTTP_400_BAD_REQUEST)
         section = get_object_or_404(ScheduleSection, pk=pk, schedule_course=schedule_course)
         section.delete()
+        if(section.sectionType=='Class'):
+            ScheduleCourse.objects.filter(id=schedule_course.pk).update(
+                    number_of_sections=F('number_of_sections') - 1
+                )
+        else:
+            ScheduleCourse.objects.filter(id=schedule_course.pk).update(
+                    number_of_labs=F('number_of_labs') - 1
+                )
+            
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     else:
