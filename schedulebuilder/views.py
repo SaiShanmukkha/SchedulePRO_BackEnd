@@ -9,9 +9,38 @@ from .models import Schedule, ScheduleFaculty, ScheduleCourse, ScheduleSection
 import pandas as pd
 import io
 from datetime import datetime
-from django.db.models import Max, F
+from django.db.models import F
 from .models import ScheduleCourse, ScheduleSection
 from .serializers import ScheduleSectionSerializer
+
+@api_view(["POST"])
+def schedule_section_remove_faculty(request, schedule_pk, schedule_course_pk, schedule_section_pk):
+    try:
+        section = ScheduleSection.objects.get(pk=schedule_section_pk)
+    except ScheduleSection.DoesNotExist:
+        return Response({"error": "Schedule section does not exist."}, status=status.HTTP_404_NOT_FOUND)
+
+    section.faculty = None
+    section.save()
+
+    serializer = ScheduleSectionCRUDSerializer(section)
+    return Response(serializer.data)
+
+@api_view(["POST"])
+def schedule_section_remove_schtime(request, schedule_pk, schedule_course_pk, schedule_section_pk):
+    try:
+        section = ScheduleSection.objects.get(pk=schedule_section_pk)
+    except ScheduleSection.DoesNotExist:
+        return Response({"error": "Schedule section does not exist."}, status=status.HTTP_404_NOT_FOUND)
+    section.start_time = None
+    section.end_time = None
+    section.day = None
+    section.save()
+
+    serializer = ScheduleSectionCRUDSerializer(section)
+    return Response(serializer.data)
+
+
 
 @api_view(['POST'])
 def add_new_schedule_section(request, schedule_pk, schedule_course_pk):
@@ -445,7 +474,7 @@ def schedule_section_view(request, schedule_pk, schedule_course_pk, pk=None):
                     number_of_labs=F('number_of_labs') - 1
                 )
             
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response({'ScheduleSectionId':pk}, status=status.HTTP_200_OK)
 
     else:
         return Response({'error': 'Method not allowed'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
